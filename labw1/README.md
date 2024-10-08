@@ -1,16 +1,17 @@
-# labw1
+# 💎labw1💎
 
-A new Flutter project.
+Лабораторная работа 1. Цветовые модели
 
-## Getting Started
+## 💎Task💎
+Изучить цветовые модели: RGB, CMYK, HSV, HLS, преобразования между ними.
+Создать приложение/веб-приложение, позволяющее пользователю выбирать, а
+затем интерактивно менять цвет, показывая при этом его составляющие в трех
+моделях одновременно (варианты приведены ниже).
+🌟CMYK – RGB – HSV🌟
 
-This project is a starting point for a Flutter application.
+## 💎Project structure💎
+`Data` - Класс цвет.мод, исходя из него был редактирован `color models`. Взят pubdev пакет [flutter_color_models: ^1.3.3+2](https://pub.dev/packages/flutter_color_models)
 
-A few resources to get you started if this is your first Flutter project:
+`Presentation` - view dart file, отвечающий за отрисовку
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
