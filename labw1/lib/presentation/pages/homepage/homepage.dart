@@ -1,377 +1,261 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_color_models/flutter_color_models.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
-import 'package:labw1/presentation/manager/color_observer.dart';
 
-import '../../../data/cmyk_color.dart';
-import '../../../data/hsv_color.dart' as custom_hsv;
-import '../../../data/rgb_model.dart';
+Color color = Color(0xFF000000);
 
-class Homepage extends StatefulWidget {
-  const Homepage({super.key});
-
+class ColorPickerApp extends StatefulWidget {
   @override
-  State<Homepage> createState() => _HomepageState();
+  _ColorPickerAppState createState() => _ColorPickerAppState();
 }
 
-class _HomepageState extends State<Homepage> {
-  late ColorObserver colorObserver;
-  late TextEditingController rController, gController, bController;
-  late TextEditingController cController, mController, yController, kController;
-  late TextEditingController hController, sController, vController;
+class _ColorPickerAppState extends State<ColorPickerApp> {
+  RgbColor rgb = RgbColor.fromColor(color);
+  CmykColor cmyk = CmykColor.fromColor(color);
+  HSVColor hsv = HSVColor.fromColor(color);
+
+  Color currentColor = Colors.black;
 
   @override
   void initState() {
     super.initState();
-    colorObserver = ColorObserver(rgb: RGBColor(255, 0, 0));
-    _initializeControllers();
+    updateColor();
   }
 
-  void _initializeControllers() {
-    rController = TextEditingController(text: colorObserver.rgb.r.toString());
-    gController = TextEditingController(text: colorObserver.rgb.g.toString());
-    bController = TextEditingController(text: colorObserver.rgb.b.toString());
-    cController = TextEditingController(text: colorObserver.cmyk.c.toString());
-    mController = TextEditingController(text: colorObserver.cmyk.m.toString());
-    yController = TextEditingController(text: colorObserver.cmyk.y.toString());
-    kController = TextEditingController(text: colorObserver.cmyk.k.toString());
-    hController = TextEditingController(text: colorObserver.hsv.h.toString());
-    sController = TextEditingController(text: colorObserver.hsv.s.toString());
-    vController = TextEditingController(text: colorObserver.hsv.v.toString());
+  void updateColor() {
+    setState(() {
+      rgb = RgbColor.fromColor(currentColor);
+      cmyk = CmykColor.fromColor(currentColor);
+      hsv = HSVColor.fromColor(currentColor);
+    });
   }
 
-  @override
-  void dispose() {
-    rController.dispose();
-    gController.dispose();
-    bController.dispose();
-    cController.dispose();
-    mController.dispose();
-    yController.dispose();
-    kController.dispose();
-    hController.dispose();
-    sController.dispose();
-    vController.dispose();
-    super.dispose();
+  void selectColor(Color color) {
+    setState(() {
+      currentColor = color;
+      updateColor();
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Container(
-        color: Colors.green,
-        child: Center(
-          child: Container(
-            height: MediaQuery.of(context).size.height * 0.7,
-            width: MediaQuery.of(context).size.width * 0.7,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(20),
-              boxShadow: const [
-                BoxShadow(
-                  color: Colors.white,
-                  blurRadius: 10,
-                  blurStyle: BlurStyle.outer,
-                ),
-              ],
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(20.0),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: Scaffold(
+        appBar: AppBar(
+          title: const Text('Color Picker'),
+          backgroundColor: Colors.teal,
+        ),
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
-                    'Color Manager',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.green,
+                  Expanded(
+                    child: buildColorSection(
+                      'RGB',
+                      ['R', 'G', 'B'],
+                      [255.0, 255.0, 255.0],
                     ),
                   ),
-                  const SizedBox(height: 20),
-                  _buildColorPicker(),
-                  const SizedBox(height: 20),
-                  _buildColorInput(),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: buildColorSection(
+                      'CMYK',
+                      ['C', 'M', 'Y', 'K'],
+                      [100.0, 100.0, 100.0, 100.0],
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: buildColorSection(
+                      'HSV',
+                      ['H', 'S', 'V'],
+                      [360.0, 1.0, 1.0],
+                    ),
+                  ),
                 ],
               ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildColorPicker() {
-    return GestureDetector(
-      onTap: () {
-        showDialog(
-          context: context,
-          builder: (context) {
-            return AlertDialog(
-              title: const Text('Выберите цвет'),
-              content: SingleChildScrollView(
-                child: ColorPicker(
-                  pickerColor: Color.fromRGBO(
-                    colorObserver.rgb.r.toInt(),
-                    colorObserver.rgb.g.toInt(),
-                    colorObserver.rgb.b.toInt(),
-                    1,
-                  ),
-                  onColorChanged: (color) {
-                    setState(() {
-                      colorObserver.updateFromRGB(
-                        RGBColor(
-                          color.red.toDouble(),
-                          color.green.toDouble(),
-                          color.blue.toDouble(),
-                        ),
-                      );
-                      _updateControllersFromObserver();
-                    });
-                  },
+              const SizedBox(height: 20),
+              Container(
+                width: double.infinity,
+                height: 100,
+                decoration: BoxDecoration(
+                  color: currentColor,
+                  borderRadius: BorderRadius.circular(10),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.2),
+                      spreadRadius: 2,
+                      blurRadius: 5,
+                    ),
+                  ],
+                ),
+                alignment: Alignment.center,
+                child: const Text(
+                  'Current Color',
+                  style: TextStyle(
+                      color: Colors.white, fontWeight: FontWeight.bold),
                 ),
               ),
-              actions: <Widget>[
-                ElevatedButton(
-                  child: const Text('Готово'),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                ),
-              ],
-            );
-          },
-        );
-      },
-      child: Container(
-        width: 100,
-        height: 100,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: Color.fromRGBO(
-            colorObserver.rgb.r.toInt(),
-            colorObserver.rgb.g.toInt(),
-            colorObserver.rgb.b.toInt(),
-            1,
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: () {
+                  showDialog(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      title: const Text('Pick a color'),
+                      content: SingleChildScrollView(
+                        child: ColorPicker(
+                          pickerColor: currentColor,
+                          onColorChanged: selectColor,
+                          showLabel: true,
+                          pickerAreaHeightPercent: 0.8,
+                        ),
+                      ),
+                      actions: <Widget>[
+                        TextButton(
+                          child: const Text('Done'),
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                            updateColor();
+                          },
+                        ),
+                      ],
+                    ),
+                  );
+                },
+                child: const Text('Open Color Picker'),
+              ),
+            ],
           ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.withOpacity(0.5),
-              spreadRadius: 5,
-              blurRadius: 7,
-              offset: const Offset(0, 3),
-            ),
-          ],
         ),
       ),
     );
   }
 
-  Widget _buildColorInput() {
+  Widget buildColorSection(
+      String title, List<String> labels, List<double> maxValues) {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            _buildRgbColumn(),
-            _buildCmykColumn(),
-            _buildHsvColumn(),
-          ],
+        Text(
+          title,
+          style: const TextStyle(
+              fontSize: 20, fontWeight: FontWeight.bold, color: Colors.teal),
         ),
+        const SizedBox(height: 8),
+        buildColorSliderColumn(labels, maxValues),
       ],
     );
   }
 
-  Widget _buildRgbColumn() {
+  Widget buildColorSliderColumn(List<String> labels, List<double> maxValues) {
     return Column(
-      children: [
-        const Text('RGB', style: TextStyle(fontWeight: FontWeight.bold)),
-        _buildTextField('R', rController, (value) {
-          if (value.isNotEmpty && int.tryParse(value) != null) {
-            setState(() {
-              colorObserver.updateFromRGB(
-                RGBColor(
-                  double.parse(value),
-                  colorObserver.rgb.g,
-                  colorObserver.rgb.b,
-                ),
-              );
-              _updateControllersFromObserver();
-            });
-          }
-        }),
-        _buildTextField('G', gController, (value) {
-          if (value.isNotEmpty && int.tryParse(value) != null) {
-            setState(() {
-              colorObserver.updateFromRGB(
-                RGBColor(
-                  colorObserver.rgb.r,
-                  double.parse(value),
-                  colorObserver.rgb.b,
-                ),
-              );
-              _updateControllersFromObserver();
-            });
-          }
-        }),
-        _buildTextField('B', bController, (value) {
-          if (value.isNotEmpty && int.tryParse(value) != null) {
-            setState(() {
-              colorObserver.updateFromRGB(
-                RGBColor(
-                  colorObserver.rgb.r,
-                  colorObserver.rgb.g,
-                  double.parse(value),
-                ),
-              );
-              _updateControllersFromObserver();
-            });
-          }
-        }),
-      ],
+      children: List.generate(labels.length, (index) {
+        double currentValue = getValueForLabel(labels[index]);
+
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 4.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('${labels[index]}: ${currentValue.toStringAsFixed(2)}'),
+              Slider(
+                value: currentValue,
+                min: 0.0,
+                max: maxValues[index],
+                divisions: labels[index] == 'H'
+                    ? 360
+                    : (maxValues[index] == 1.0
+                        ? 100
+                        : maxValues[index].toInt()),
+                onChanged: (value) {
+                  setState(() {
+                    setValueForLabel(labels[index], value);
+                  });
+                },
+              ),
+            ],
+          ),
+        );
+      }),
     );
   }
 
-  Widget _buildCmykColumn() {
-    return Column(
-      children: [
-        const Text('CMYK', style: TextStyle(fontWeight: FontWeight.bold)),
-        _buildTextField('C', cController, (value) {
-          if (value.isNotEmpty && double.tryParse(value) != null) {
-            setState(() {
-              // Allow CMYK updates to reflect RGB automatically
-              colorObserver.updateFromCMYK(
-                CMYKColor(
-                  double.parse(value),
-                  colorObserver.cmyk.m,
-                  colorObserver.cmyk.y,
-                  colorObserver.cmyk.k,
-                ),
-              );
-              _updateControllersFromObserver();
-            });
-          }
-        }),
-        _buildTextField('M', mController, (value) {
-          if (value.isNotEmpty && double.tryParse(value) != null) {
-            setState(() {
-              colorObserver.updateFromCMYK(
-                CMYKColor(
-                  colorObserver.cmyk.c,
-                  double.parse(value),
-                  colorObserver.cmyk.y,
-                  colorObserver.cmyk.k,
-                ),
-              );
-              _updateControllersFromObserver();
-            });
-          }
-        }),
-        _buildTextField('Y', yController, (value) {
-          if (value.isNotEmpty && double.tryParse(value) != null) {
-            setState(() {
-              colorObserver.updateFromCMYK(
-                CMYKColor(
-                  colorObserver.cmyk.c,
-                  colorObserver.cmyk.m,
-                  double.parse(value),
-                  colorObserver.cmyk.k,
-                ),
-              );
-              _updateControllersFromObserver();
-            });
-          }
-        }),
-        _buildTextField('K', kController, (value) {
-          if (value.isNotEmpty && double.tryParse(value) != null) {
-            setState(() {
-              colorObserver.updateFromCMYK(
-                CMYKColor(
-                  colorObserver.cmyk.c,
-                  colorObserver.cmyk.m,
-                  colorObserver.cmyk.y,
-                  double.parse(value),
-                ),
-              );
-              _updateControllersFromObserver();
-            });
-          }
-        }),
-      ],
-    );
+  double getValueForLabel(String label) {
+    switch (label) {
+      case 'R':
+        return rgb.red.toDouble();
+      case 'G':
+        return rgb.green.toDouble();
+      case 'B':
+        return rgb.blue.toDouble();
+      case 'C':
+        return cmyk.cyan.toDouble();
+      case 'M':
+        return cmyk.magenta.toDouble();
+      case 'Y':
+        return cmyk.yellow.toDouble();
+      case 'K':
+        return cmyk.black.toDouble();
+      case 'H':
+        return hsv.hue;
+      case 'S':
+        return hsv.saturation;
+      case 'V':
+        return hsv.value;
+      default:
+        return 0.0;
+    }
   }
 
-  Widget _buildHsvColumn() {
-    return Column(
-      children: [
-        const Text('HSV', style: TextStyle(fontWeight: FontWeight.bold)),
-        _buildTextField('H', hController, (value) {
-          if (value.isNotEmpty && double.tryParse(value) != null) {
-            setState(() {
-              colorObserver.updateFromHSV(
-                custom_hsv.HSVColor(
-                  double.parse(value),
-                  colorObserver.hsv.s,
-                  colorObserver.hsv.v,
-                ),
-              );
-              _updateControllersFromObserver();
-            });
-          }
-        }),
-        _buildTextField('S', sController, (value) {
-          if (value.isNotEmpty && double.tryParse(value) != null) {
-            setState(() {
-              colorObserver.updateFromHSV(
-                custom_hsv.HSVColor(
-                  colorObserver.hsv.h,
-                  double.parse(value),
-                  colorObserver.hsv.v,
-                ),
-              );
-              _updateControllersFromObserver();
-            });
-          }
-        }),
-        _buildTextField('V', vController, (value) {
-          if (value.isNotEmpty && double.tryParse(value) != null) {
-            setState(() {
-              colorObserver.updateFromHSV(
-                custom_hsv.HSVColor(
-                  colorObserver.hsv.h,
-                  colorObserver.hsv.s,
-                  double.parse(value),
-                ),
-              );
-              _updateControllersFromObserver();
-            });
-          }
-        }),
-      ],
-    );
-  }
-
-  Widget _buildTextField(String label, TextEditingController controller, Function(String) onChanged) {
-    return SizedBox(
-      width: 60,
-      child: TextField(
-        controller: controller,
-        decoration: InputDecoration(labelText: label),
-        keyboardType: TextInputType.number,
-        onChanged: onChanged,
-      ),
-    );
-  }
-
-  void _updateControllersFromObserver() {
-    rController.text = colorObserver.rgb.r.toString();
-    gController.text = colorObserver.rgb.g.toString();
-    bController.text = colorObserver.rgb.b.toString();
-    cController.text = colorObserver.cmyk.c.toString();
-    mController.text = colorObserver.cmyk.m.toString();
-    yController.text = colorObserver.cmyk.y.toString();
-    kController.text = colorObserver.cmyk.k.toString();
-    hController.text = colorObserver.hsv.h.toString();
-    sController.text = colorObserver.hsv.s.toString();
-    vController.text = colorObserver.hsv.v.toString();
+  void setValueForLabel(String label, double value) {
+    switch (label) {
+      case 'R':
+        rgb = rgb.copyWith(red: value.toInt());
+        currentColor = rgb.toColor();
+        break;
+      case 'G':
+        rgb = rgb.copyWith(green: value.toInt());
+        currentColor = rgb.toColor();
+        break;
+      case 'B':
+        rgb = rgb.copyWith(blue: value.toInt());
+        currentColor = rgb.toColor();
+        break;
+      case 'C':
+        cmyk = cmyk.copyWith(cyan: value);
+        currentColor = cmyk.toRgbColor().toColor();
+        break;
+      case 'M':
+        cmyk = cmyk.copyWith(magenta: value);
+        currentColor = cmyk.toRgbColor().toColor();
+        break;
+      case 'Y':
+        cmyk = cmyk.copyWith(yellow: value);
+        currentColor = cmyk.toRgbColor().toColor();
+        break;
+      case 'K':
+        cmyk = cmyk.copyWith(black: value);
+        currentColor = cmyk.toRgbColor().toColor();
+        break;
+      case 'H':
+        hsv = hsv.withHue(value);
+        currentColor = hsv.toColor();
+        break;
+      case 'S':
+        hsv = hsv.withSaturation(value);
+        currentColor = hsv.toColor();
+        break;
+      case 'V':
+        hsv = hsv.withValue(value);
+        currentColor = hsv.toColor();
+        break;
+    }
+    updateColor();
   }
 }
