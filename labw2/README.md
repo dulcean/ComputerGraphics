@@ -1,16 +1,26 @@
-# labw2
+# 💎labw2💎
 
-A new Flutter project.
+Лабораторная работа 2. Основы обработки цифровых изображений/сжатие изображений
 
-## Getting Started
+## 💎Task💎
+Реализация алгоритмов и методов обработки/сжатия изображений.
+Написать приложение/веб-приложение, реализующее указанные в варианте методы
+обработки изображений / реализовать один из рассмотренных в лекции методов
+сжатия графической информации.
+🌟Реализация нелинейных фильтров, основанных на порядковых статистиках; 🌟
 
-This project is a starting point for a Flutter application.
+## 💎Examples💎
+![image](https://github.com/user-attachments/assets/b52f405c-915a-4ce7-801b-9dabe44dbe80)
 
-A few resources to get you started if this is your first Flutter project:
+## 💎Project structure💎
+`algorithms/server_bash.py` - Python 3.13 модуль, отвечающий за алгоритмы обработки фото
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+`presentation/image_processing.dart` - view dart file, отвечающий за отрисовку
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## 💎Requirments💎
+  - Python 3.13
+  - Flutter 3.5.3
+  - flask, flask_cors
+  - numpy
+  - cv2
+  - urllib.request
