@@ -54,6 +54,7 @@ def apply_bernsen_threshold():
         image = url_to_image(image_url)
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         thresh = bernsen_threshold(gray, window_size, contrast_threshold, threshold_value)
+
         
         _, buffer = cv2.imencode('.png', thresh)
         image_bytes = io.BytesIO(buffer)
