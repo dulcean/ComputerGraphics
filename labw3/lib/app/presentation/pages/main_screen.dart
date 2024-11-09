@@ -1,13 +1,15 @@
 import 'dart:async';
-import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:labw3/app/presentation/algo/bresenham_circle.dart';
 import 'package:labw3/app/presentation/algo/bresenham_line.dart';
+import 'package:labw3/app/presentation/algo/castel.dart';
 import 'package:labw3/app/presentation/algo/dda.dart';
 import 'package:labw3/app/presentation/algo/step_by_step.dart';
-import 'package:labw3/app/presentation/components/coord_input.dart';
+import 'package:labw3/app/presentation/algo/wu.dart';
 import 'package:labw3/app/presentation/components/grid_painter.dart';
+import 'package:labw3/app/presentation/components/row_switch.dart';
+import 'package:labw3/app/presentation/util/command_exec.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -29,13 +31,54 @@ class _MainScreenState extends State<MainScreen> {
   int startY = 2;
   int endX = 7;
   int endY = 7;
+  int radius = 4;
+  int iter = 10;
   double offsetX = 0;
   double offsetY = 0;
+
+  void _updateStartX(int value) {
+    setState(() {
+      startX = value;
+    });
+  }
+
+  void _updateStartY(int value) {
+    setState(() {
+      startY = value;
+    });
+  }
+
+  void _updateEndX(int value) {
+    setState(() {
+      endX = value;
+    });
+  }
+
+  void _updateEndY(int value) {
+    setState(() {
+      endY = value;
+    });
+  }
+
+  void _updateRadius(int value) {
+    setState(() {
+      radius = value;
+    });
+  }
+
+  void _updateIter(int value) {
+    setState(() {
+      iter = value;
+    });
+  }
+
   final List<String> algorithms = [
     'Bresenham Line',
     'Step By Step',
     'DDA',
     'Bresenham Circle',
+    'Casteljau',
+    'Wu'
   ];
   String selectedAlgorithm = 'Bresenham Line';
 
@@ -64,8 +107,10 @@ class _MainScreenState extends State<MainScreen> {
     });
   }
 
-  void lineAnimation(int x0, int y0, int x1, int y1) {
-    List<Point<int>> points;
+  void lineAnimation(int x0, int y0, int x1, int y1, int radius, int iters) {
+    dynamic points;
+    bool hasAlpha = false;
+
     switch (selectedAlgorithm) {
       case 'Step By Step':
         points = StepByStepLine.stepByStepLine(x0, y0, x1, y1, (logMessage) {
@@ -78,9 +123,21 @@ class _MainScreenState extends State<MainScreen> {
         });
         break;
       case 'Bresenham Circle':
-        points = BresenhamCircle.bresenhamCircle(x0, y0, x1, (logMessage) {
+        points = BresenhamCircle.bresenhamCircle(x0, y0, radius, (logMessage) {
           initConsole(logMessage);
         });
+        break;
+      case 'Casteljau':
+        points =
+            CasteljauAlgorithm.casteljau(x0, y0, x1, y1, iters, (logMessage) {
+          initConsole(logMessage);
+        });
+        break;
+      case 'Wu':
+        points = WuLine.wuLine(x0, y0, x1, y1, (logMessage) {
+          initConsole(logMessage);
+        });
+        hasAlpha = true;
         break;
       case 'Bresenham Line':
       default:
@@ -88,16 +145,27 @@ class _MainScreenState extends State<MainScreen> {
           initConsole(logMessage);
         });
     }
+
     int index = 0;
 
     _timer?.cancel();
     _timer = Timer.periodic(const Duration(milliseconds: 20), (timer) {
       if (index < points.length) {
         setState(() {
-          int x = points[index].x + offsetX.toInt();
-          int y = -points[index].y + offsetY.toInt() - 1;
+          int x, y;
+          double alpha = 1.0;
+
+          if (hasAlpha) {
+            x = points[index]['x'] + offsetX.toInt();
+            y = -points[index]['y'] + offsetY.toInt() - 1;
+            alpha = points[index]['alpha'];
+          } else {
+            x = points[index].x + offsetX.toInt();
+            y = -points[index].y + offsetY.toInt() - 1;
+          }
+
           if (x >= 0 && x < gridSizeX && y >= 0 && y < gridSizeY) {
-            grid[y][x] = Colors.blue;
+            grid[y][x] = Color.fromRGBO(0, 0, 255, alpha);
           }
         });
         index++;
@@ -117,30 +185,7 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   void _executeCommand(String command) {
-    switch (command) {
-      case 'clear':
-        setState(() {
-          logs.clear();
-        });
-        break;
-
-      case 'test dda':
-        DateTime startTime = DateTime.now();
-        DdaLine.ddaLine(startX, startY, endX, endY, (logMessage) {});
-        DateTime endTime = DateTime.now();
-        Duration duration = endTime.difference(startTime);
-
-        setState(() {
-          logs.add('DDA test completed in ${duration.inMilliseconds} ms');
-        });
-        break;
-
-      default:
-        setState(() {
-          logs.add('Неизвестная команда: $command');
-        });
-        break;
-    }
+    executeCommand(command, logs, setState);
   }
 
   @override
@@ -169,32 +214,21 @@ class _MainScreenState extends State<MainScreen> {
                   children: [
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        BuildCoordinateInput(
-                            label: "Start X",
-                            initialValue: startX,
-                            onChanged: (value) {
-                              startX = int.parse(value);
-                            }),
-                        BuildCoordinateInput(
-                            label: "Start Y",
-                            initialValue: startY,
-                            onChanged: (value) {
-                              startY = int.parse(value);
-                            }),
-                        BuildCoordinateInput(
-                            label: "End X",
-                            initialValue: endX,
-                            onChanged: (value) {
-                              endX = int.parse(value);
-                            }),
-                        BuildCoordinateInput(
-                            label: "End Y",
-                            initialValue: endY,
-                            onChanged: (value) {
-                              endY = int.parse(value);
-                            }),
-                      ],
+                      children: buildCoords(
+                        selectedAlgorithm,
+                        startX,
+                        startY,
+                        endX,
+                        endY,
+                        radius,
+                        iter,
+                        _updateStartX,
+                        _updateStartY,
+                        _updateEndX,
+                        _updateEndY,
+                        _updateRadius,
+                        _updateIter,
+                      ),
                     ),
                     const SizedBox(height: 20),
                     const Text(
@@ -256,7 +290,14 @@ class _MainScreenState extends State<MainScreen> {
                     ElevatedButton(
                       onPressed: () {
                         _resetGrid();
-                        lineAnimation(startX, startY, endX, endY);
+                        lineAnimation(
+                          startX,
+                          startY,
+                          endX,
+                          endY,
+                          radius,
+                          iter,
+                        );
                       },
                       child: const Text("Start Animation"),
                     ),
